@@ -2,9 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import Map from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import Locate from "@arcgis/core/widgets/Locate";
-import Search from "@arcgis/core/widgets/Search";
-import CustomWidget from "../../Components/Widgets/CustomWidget";
-import ReactDOM from "react-dom";
 import Expand from "@arcgis/core/widgets/Expand";
 import Legend from "@arcgis/core/widgets/Legend";
 import LayerList from "@arcgis/core/widgets/LayerList";
@@ -12,19 +9,21 @@ import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import TableWidget from "../../Components/Widgets/TableWidget";
 import Basemap from "@arcgis/core/Basemap";
 import { parkPopupTemplate } from "../../Helpers/MapHelpers";
-import TopFeaturesQuery from "@arcgis/core/rest/support/TopFeaturesQuery";
-import TopFilter from "@arcgis/core/rest/support/TopFilter";
+import { createRoot } from "react-dom/client";
+import Graphic from "@arcgis/core/Graphic";
+import QueryWidget from "../../Components/Widgets/QueryWidget";
 
 const MapViewSection = (props: any) => {
   const { mapView, setMapView } = props;
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mainLayer, setMainLayer] = useState<FeatureLayer | null>(null);
   const [queryForm, setQueryForm] = useState({
-    orderBy: "1",
-    parksPerState: "1",
-    year: "*",
+    num_deaths: 1,
+    year_: "*",
+    sec: 0,
   });
-  const [parks, setParks] = useState([]);
+
+  const [attributesData, setAttributesData] = useState<Graphic[]>([]);
 
   const initMap = () => {
     if (!mapRef.current) return;
@@ -35,9 +34,8 @@ const MapViewSection = (props: any) => {
       },
     });
 
-    // national parks layer
     const layer = new FeatureLayer({
-      url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/US_National_Parks_Annual_Visitation/FeatureServer/0",
+      url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Earthquakes_Since1970/MapServer/0",
       outFields: ["*"],
       popupTemplate: parkPopupTemplate(),
     });
@@ -79,16 +77,8 @@ const MapViewSection = (props: any) => {
       view,
     });
 
-    const customWidgetElement = document.createElement("div");
-    const tableWidgetElement = document.createElement("div");
-    ReactDOM.render(
-      <CustomWidget mapView={view} setQueryForm={setQueryForm} />,
-      customWidgetElement
-    );
-    ReactDOM.render(<TableWidget />, tableWidgetElement);
-
-    view.ui.add(customWidgetElement, "top-right");
-    view.ui.add(tableWidgetElement, "bottom-right");
+    view.ui.add(document.getElementById("query")!, "top-right");
+    view.ui.add(document.getElementById("table")!, "bottom-right");
     view.ui.add(locateWidget, "top-left");
     view.ui.add(
       new Expand({ view, content: legend, expandTooltip: "Expand Legend" }),
@@ -108,37 +98,50 @@ const MapViewSection = (props: any) => {
 
   useEffect(() => {
     initMap();
-
+    updateAttributesData();
     return () => {
       mapView && mapView.destroy();
     };
   }, []);
 
+  const updateAttributesData = async (query: any = undefined) => {
+    const result = await mainLayer?.queryFeatures();
+    if (!result) setAttributesData([]);
+    else
+      setAttributesData(result.features.map((feature) => feature.attributes));
+  };
+
   useEffect(() => {
     if (!mainLayer) return;
+    const filter = async () => {
+      const query = mainLayer.createQuery();
+      let whereClause = `num_deaths <= ${queryForm.num_deaths} AND sec >= ${queryForm.sec}`;
+      if (queryForm.year_ !== "*") {
+        whereClause += ` AND year_=${queryForm.year_}`;
+      }
+      mainLayer.definitionExpression = whereClause;
+      query.where = whereClause;
+      query.outFields = ["*"];
 
-    // const filter = async () => {
-    //   const query = new TopFeaturesQuery({
-    //     topFilter: new TopFilter({
-    //       topCount: parseInt(queryForm.parksPerState),
-    //       groupByFields: ["State"],
-    //       orderByFields: [`${queryForm.orderBy} DESC`], 
-    //     }),
-    //     orderByFields: orderByField,
-    //     outFields: ["State, TOTAL, F2018, F2019, F2020, Park"],
-    //     returnGeometry: true,
-    //     cacheHint: false,
-    //   });
-    //   await mainLayer.queryTopFeatures(query);
-    // };
+      updateAttributesData(query);
+    };
+    filter();
   }, [queryForm]);
 
   return (
-    <div
-      className="mapDiv col-span-5"
-      ref={mapRef}
-      style={{ height: "100vh", width: "100%" }}
-    ></div>
+    <div>
+      <div
+        className="mapDiv col-span-5"
+        ref={mapRef}
+        style={{ height: "100vh", width: "100%" }}
+      ></div>
+      <div id="query">
+        <QueryWidget setQueryForm={setQueryForm} />
+      </div>
+      <div id="table">
+        <TableWidget data={attributesData} />
+      </div>
+    </div>
   );
 };
 
