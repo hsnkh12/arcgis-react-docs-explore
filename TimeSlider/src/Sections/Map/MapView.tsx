@@ -1,21 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Map from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import Locate from "@arcgis/core/widgets/Locate";
-import Search from "@arcgis/core/widgets/Search";
-import CustomWidget from "../../Components/Widgets/CustomWidget";
 import Expand from "@arcgis/core/widgets/Expand";
 import Legend from "@arcgis/core/widgets/Legend";
 import LayerList from "@arcgis/core/widgets/LayerList";
-import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import TimeSlider from "@arcgis/core/widgets/TimeSlider";
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
-import { start } from "repl";
 import TimeExtent from "@arcgis/core/TimeExtent";
+import TimeIntereval from "@arcgis/core/TimeInterval";
 
 const MapViewSection = (props: any) => {
   const { mapView, setMapView } = props;
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const [layerView, setLayerView] = useState<__esri.GeoJSONLayerView | null>(
+    null
+  );
+  const [timeSlider, setTimeSlider] = useState<TimeSlider | null>(null);
+  const [layer, setLayer] = useState<GeoJSONLayer | null>(null);
 
   const initMap = () => {
     if (!mapRef.current) return;
@@ -82,8 +84,15 @@ const MapViewSection = (props: any) => {
     const timeSlider = new TimeSlider({
       container: "timeSlider",
       view: view,
-      timeVisible: true, // show the time stamps on the timeslider
+      timeVisible: true,
       loop: true,
+      playRate: 50,
+      stops: {
+        interval: new TimeIntereval({
+          value: 1,
+          unit: "hours",
+        }),
+      },
     });
 
     const locateWidget = new Locate({
@@ -116,15 +125,38 @@ const MapViewSection = (props: any) => {
       "top-left"
     );
 
-    setMapView(view);
-
-    view.whenLayerView(layer).then((lv) => {
-      timeSlider.fullTimeExtent = new TimeExtent({
-        start: new Date(2019, 4, 25),
-        end: layer.timeInfo.fullTimeExtent.end
-      })
+    view.when((v: MapView) => {
+      setMapView(v);
+      layer.when((l: GeoJSONLayer) => {
+        setLayer(l);
+      });
+      v.whenLayerView(layer).then((layerView) => {
+        setLayerView(layerView);
+        setTimeSlider(timeSlider);
+      });
     });
   };
+
+  useEffect(() => {
+    if (!timeSlider || !layer) return;
+    const start = new Date(2019, 4, 25);
+    timeSlider.fullTimeExtent = new TimeExtent({
+      start,
+      end: layer.timeInfo.fullTimeExtent.end,
+    });
+    let end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    timeSlider.timeExtent = new TimeExtent({ start, end });
+
+    timeSlider.watch("timeExtent", async (value) => {
+      const date = new Date(timeSlider.timeExtent.end)
+        .toISOString()
+        .replace("T", " ")
+        .replace("Z", "");
+      layer.definitionExpression = "time <= Timestamp '" + date + "'";
+    });
+  }, [timeSlider]);
 
   useEffect(() => {
     initMap();
@@ -141,9 +173,7 @@ const MapViewSection = (props: any) => {
         ref={mapRef}
         style={{ height: "100vh", width: "100%" }}
       ></div>
-      <div id="custom-widget">
-        <CustomWidget mapView={mapView} />
-      </div>
+      <div id="custom-widget">{/* <CustomWidget mapView={mapView} /> */}</div>
     </div>
   );
 };

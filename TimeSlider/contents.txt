@@ -1,1 +1,4 @@
-- Add time slider and integrate its intereval with layer timeInfo 
+- Add time slider and integrate its intereval with layer timeInfo
+- Configure Time slider 
+- Handle on time extent change  
+- Initialize mapview, layer, and layerview in more structured way

@@ -19,24 +19,31 @@ Each project in this repository is built using the ArcGIS React App Template ava
 
 ### FeatureLayer
 
-- **Load feature layers**: Learn how to load feature layers onto your map.
-- **Create custom feature layer**: Explore creating custom feature layers to suit your application's needs.
-- **Add pop up for a feature layer**: Implement pop-ups for feature layers to provide additional information.
-- **Use applyEdits method to remove layers from view**: Practice using applyEdits method to remove layers dynamically.
-- **Use applyEdits method to add features to a layer**: Experiment with adding new features to existing layers.
-- **Filter features in a layer**: Master the art of filtering features within a layer based on specific criteria.
+- **Load feature layers**
+- **Create custom feature layer**
+- **Add pop up for a feature layer**
+- **Use applyEdits method to remove layers from view**
+- **Use applyEdits method to add features to a layer**
+- **Filter features in a layer**
 
 ### 2D Maps
 
-- **Load maps**: Understand how to load 2D maps into your application.
-- **Save maps**: Explore saving maps to preserve user configurations.
-- **Use pointer events**: Dive into handling pointer events for interaction with maps.
+- **Load maps**
+- **Save maps**
+- **Use pointer events**
 
 ### Query
 
-- **Create popup template for a layer**: Learn to create popup templates for displaying feature information.
-- **Display features on a table**: Practice displaying queried features in a tabular format.
-- **Filter features by writing a query and applying the change**: Hone your skills in querying and filtering features dynamically.
+- **Create popup template for a layer**
+- **Display features on a table**
+- **Filter features by writing a query and applying the change**
+
+### TimeSlider
+
+- **Add time slider and integrate its intereval with layer timeInfo**
+- **Configure Time slider's time extent and intereval**
+- **Handle on time extent change**
+- **Initialize mapview, layer, and layerview in more structured way**
 
 ## Sample Code
 
