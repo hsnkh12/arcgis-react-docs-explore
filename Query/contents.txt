@@ -1,0 +1,3 @@
+- Create popup template for a layer
+- Display features on a table
+- Filter features by writing a query and applying the change

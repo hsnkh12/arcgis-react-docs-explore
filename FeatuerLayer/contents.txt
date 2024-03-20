@@ -1,0 +1,6 @@
+- Load feature layers
+- Create custom feature layer
+- Add pop up for a feature layer 
+- Use applyEdits method to remove layers from view 
+- Use applyEdits method to add features to a layer
+- Filter features in a layer 

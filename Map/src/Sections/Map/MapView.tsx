@@ -8,35 +8,33 @@ import Expand from "@arcgis/core/widgets/Expand";
 import Legend from "@arcgis/core/widgets/Legend";
 import LayerList from "@arcgis/core/widgets/LayerList";
 import WebMap from "@arcgis/core/WebMap";
-const MapViewSection = (props: {mapView: MapView, setMapView: (mapView:MapView)=>void}) => {
+import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+const MapViewSection = (props: {
+  mapView: MapView;
+  setMapView: (mapView: MapView) => void;
+}) => {
   const { mapView, setMapView } = props;
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [webMap, setWebMap] = useState<WebMap | null>(null);
-
-  const PORTAL_ITEM_ID = "e691172598f04ea8881cd2a4adaa45ba"
-  const onSaveMap = (item: any) => {
-
-    webMap?.updateFrom(item)
-    .then((item) => {
-      const itemPageUrl = `${item.portal.url}/home/item.html?id=${item.id}`;
-      const link = document.createElement("a");
-      link.href = itemPageUrl
-      link.target = "_blank";
-    })
-  }
+  const [testLayer, setTestLayer] = useState<FeatureLayer | null>(null);
 
   const initMap = () => {
     if (!mapRef.current) return;
 
-    const webMap = new WebMap({
-      portalItem: {
-        id: PORTAL_ITEM_ID 
-      }
+    const layer = new FeatureLayer({
+      url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/WorldCities/FeatureServer/0",
+      outFields: ["*"],
     });
 
-    setWebMap(webMap)
+    const webMap = new WebMap({
+      basemap: "dark-gray-vector",
+      layers: [layer],
+    });
 
-    const viewInfo: __esri.MapViewProperties  = {
+    setWebMap(webMap);
+    setTestLayer(layer);
+
+    const viewInfo: __esri.MapViewProperties = {
       container: mapRef.current,
       map: webMap,
       center: [39, 34],
@@ -47,7 +45,7 @@ const MapViewSection = (props: {mapView: MapView, setMapView: (mapView:MapView)=
           position: "top-right",
           breakpoint: false,
         },
-      },
+      }
     };
 
     const view = new MapView(viewInfo);
@@ -69,19 +67,56 @@ const MapViewSection = (props: {mapView: MapView, setMapView: (mapView:MapView)=
       view,
     });
 
-    view.ui.add(document.getElementById("custom-widget")!, "top-right");
+    view.ui.add(
+      new Expand({ view, content: document.getElementById("custom-widget")! }),
+      "top-right"
+    );
     view.ui.add(locateWidget, "top-left");
     view.ui.add(search, "top-right");
     view.ui.add(
-      new Expand({ view,content: legend, expandTooltip: "Expand Legend" }),
+      new Expand({ view, content: legend, expandTooltip: "Expand Legend" }),
       "bottom-left"
     );
     view.ui.add(
-      new Expand({ view,content: layerList, expandTooltip: "Expand LayerList" }),
+      new Expand({
+        view,
+        content: layerList,
+        expandTooltip: "Expand LayerList",
+      }),
       "top-left"
     );
-    
+    view.padding.top = 5
     setMapView(view);
+
+    view
+      .when()
+      .then(() => {
+        console.log("View loaded");
+        return layer.when();
+      })
+      .then((layer) => {
+        console.log("Layer loaded");
+        return view.whenLayerView(layer);
+      })
+      .then(() => {
+        console.log("LayerView loaded")
+        view.on("pointer-move", (e) => {
+          handlePointerAction(e, layer, view);
+        });
+      });
+  };
+
+  const handlePointerAction = (e: any, layer: FeatureLayer, view: MapView) => {
+    const opts = {
+      include: layer,
+    };
+
+    view.hitTest(e, opts).then((response) => {
+      const result: __esri.ViewHit = response.results[0];
+      if (result?.type === "graphic") {
+        console.log(result.graphic.attributes);
+      }
+    });
   };
 
   useEffect(() => {
@@ -100,7 +135,7 @@ const MapViewSection = (props: {mapView: MapView, setMapView: (mapView:MapView)=
         style={{ height: "100vh", width: "100%" }}
       ></div>
       <div id="custom-widget">
-        <CustomWidget mapView={mapView} onSaveMap={onSaveMap} />
+        <CustomWidget webMap={webMap} mapView={mapView} />
       </div>
     </div>
   );

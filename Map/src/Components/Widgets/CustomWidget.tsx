@@ -1,18 +1,32 @@
+import MapView from "@arcgis/core/views/MapView";
+import WebMap from "@arcgis/core/WebMap";
 import { useState } from "react";
 
-const CustomWidget = (props: any) => {
-  const { mapView , onSaveMap} = props;
-
+const CustomWidget = (props: { webMap: WebMap | null, mapView: MapView}) => {
+  const { webMap, mapView} = props;
   const [formValues, setFormValues] = useState<any>({
-    title: "My map"
+    title: "My map",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormValues({ ...formValues, title: e.target.value });
   };
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSaveMap(formValues)
+
+    try {
+      setIsLoading(true);
+      await webMap?.updateFrom(mapView);
+      const item = await webMap?.saveAs(formValues);
+      const itemPageUrl = `${item?.portal.url}/home/item.html?id=${item?.id}`;
+      window.alert("Map saved successfully! You can view it at " + itemPageUrl);
+    } catch (err) {
+      window.alert("Failed to save map");
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
   return (
     <div className="p-4 bg-white" style={{ width: 300 }}>
@@ -38,6 +52,7 @@ const CustomWidget = (props: any) => {
         >
           Save
         </button>
+        {isLoading && <p>Loading...</p>}
       </form>
     </div>
   );
