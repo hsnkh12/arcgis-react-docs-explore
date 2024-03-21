@@ -1,0 +1,5 @@
+- Apply buffer on click 
+- Use symbol types such as, SimpleMarkerSymbol and SimpleFillSymbol
+- Compute viewshed and apply changes on the map 
+- Apply Hotspot analysis
+- Use route analysis 
