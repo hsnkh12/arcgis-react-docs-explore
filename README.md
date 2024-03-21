@@ -45,6 +45,13 @@ Each project in this repository is built using the ArcGIS React App Template ava
 - **Handle on time extent change**
 - **Initialize mapview, layer, and layerview in more structured way**
 
+### Analysis
+
+- **Apply buffer on click**
+- **Use symbol types such as, SimpleMarkerSymbol and SimpleFillSymbol**
+- **Compute viewshed and apply changes on the map**
+- **Apply Hotspot analysis**
+- **Use route analysis** 
 ## Sample Code
 
 To supplement your learning, refer to the [ArcGIS JavaScript SDK documentation](https://developers.arcgis.com/javascript/latest/sample-code) for comprehensive sample code and examples.
