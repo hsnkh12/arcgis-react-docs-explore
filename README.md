@@ -54,8 +54,8 @@ Each project in this repository is built using the ArcGIS React App Template ava
 - **Use route analysis** 
 
 ### Authentication 
-- **Use esri resources with permessions**
-- **Apply API Key to esri config**
+- **Use restricted portal items and resources**
+- **Use API Key in esri config**
 
 ## Sample Code
 
