@@ -52,6 +52,11 @@ Each project in this repository is built using the ArcGIS React App Template ava
 - **Compute viewshed and apply changes on the map**
 - **Apply Hotspot analysis**
 - **Use route analysis** 
+
+### Authentication 
+- **Use esri resources with permessions**
+- **Apply API Key to esri config**
+
 ## Sample Code
 
 To supplement your learning, refer to the [ArcGIS JavaScript SDK documentation](https://developers.arcgis.com/javascript/latest/sample-code) for comprehensive sample code and examples.
